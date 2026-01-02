@@ -49,6 +49,44 @@ app.get('/api/getAllFurniture', middleware.checkToken, function (req, res) {
         });
 });
 
+// Room to furniture category mapping
+var roomToCategories = {
+    'Living Room': ['Sofas & Chair', 'Tables & Desks', 'Cabinets & Storage', 'Lightings'],
+    'Bedroom': ['Beds & Mattresses', 'Cabinets & Storage', 'Lightings'],
+    'Study Room': ['Tables & Desks', 'Cabinets & Storage', 'Lightings', 'Study'],
+    'Kitchen': ['Cabinets & Storage', 'Tables & Desks'],
+    'Bathroom': ['Bathroom', 'Cabinets & Storage'],
+    'Garden': ['Tables & Desks', 'Lightings']
+};
+
+app.get('/api/getFurnitureByRoom', function (req, res) {
+    var room = req.query.room;
+    var countryId = req.query.countryId;
+    
+    if (!room || !roomToCategories[room]) {
+        return res.status(400).send("Invalid room type");
+    }
+    
+    var categories = roomToCategories[room];
+    var promises = categories.map(function(cat) {
+        return furniture.getFurnitureByCat(countryId, cat);
+    });
+    
+    Promise.all(promises)
+        .then(function(results) {
+            // Flatten and combine all furniture from all categories
+            var allFurniture = [];
+            results.forEach(function(furnitureList) {
+                allFurniture = allFurniture.concat(furnitureList);
+            });
+            res.send(allFurniture);
+        })
+        .catch(function(err) {
+            console.log(err);
+            res.status(500).send("Failed to get furniture by room");
+        });
+});
+
 var bodyParser = require('body-parser');
 var jsonParser = bodyParser.json({ extended: false });
 app.post('/api/addFurniture', upload.single('imgfile'), function (req, res) {

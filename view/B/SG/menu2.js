@@ -84,18 +84,8 @@ document.write('\
         <div class="container">\
             <nav class="nav-main mega-menu">\
                 <ul class="nav nav-pills nav-main" id="mainMenu">\
-                    <li class="dropdown">\
-                        <a class="dropdown-toggle" href="#">\
-                            Showroom<i class="icon icon-angle-down"></i>\
-                        </a>\
-                        <ul class="dropdown-menu">\
-                            <li><a href="/B/' + countryPrefix + '/showroom.html?room=Living Room"><i class="icon icon-map-marker"></i> Living Room</a></li>\
-                            <li><a href="/B/' + countryPrefix + '/showroom.html?room=Bedroom"><i class="icon icon-map-marker"></i> Bedroom</a></li>\
-                            <li><a href="/B/' + countryPrefix + '/showroom.html?room=Study Room"><i class="icon icon-map-marker"></i> Study Room</a></li>\
-                            <li><a href="/B/' + countryPrefix + '/showroom.html?room=Kitchen"><i class="icon icon-map-marker"></i> Kitchen</a></li>\
-                            <li><a href="/B/' + countryPrefix + '/showroom.html?room=Bathroom"><i class="icon icon-map-marker"></i> Bathroom</a></li>\
-                            <li><a href="/B/' + countryPrefix + '/showroom.html?room=Garden"><i class="icon icon-map-marker"></i> Garden</a></li>\
-                        </ul>\
+                    <li>\
+                        <a href="/B/' + countryPrefix + '/showroom.html">Showroom</a>\
                     </li>\
                     <li>\
                         <a href="/B/' + countryPrefix + '/virtualStore.html">Virtual Store</a>\
