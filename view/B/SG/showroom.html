@@ -1,0 +1,70 @@
+<script src="../checkCountry.js" ></script>
+<html>
+    <script src="../../header.js"></script>
+    <body>
+        <script src="menu2.js"></script>
+        <div role="main" class="main">
+            <section class="page-top">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h2>Showroom</h2>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="row featured-boxes login">
+                            <div class="col-md-12">
+                                <div class="featured-box featured-box-secundary default info-content">
+                                    <div class="box-content">
+                                        <h4>Select a Room</h4>
+                                        <div class="form-group">
+                                            <label for="roomSelect">Choose a room to view:</label>
+                                            <select id="roomSelect" class="form-control" style="max-width: 300px; margin-top: 10px;">
+                                                <option value="">-- Select a Room --</option>
+                                                <option value="Living Room">Living Room</option>
+                                                <option value="Bedroom">Bedroom</option>
+                                                <option value="Study Room">Study Room</option>
+                                                <option value="Kitchen">Kitchen</option>
+                                                <option value="Bathroom">Bathroom</option>
+                                                <option value="Garden">Garden</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="../footer.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var roomSelect = document.getElementById('roomSelect');
+                
+                // Check if room parameter is in URL and set dropdown
+                var urlParams = new URLSearchParams(window.location.search);
+                var roomParam = urlParams.get('room');
+                if (roomParam) {
+                    roomSelect.value = roomParam;
+                }
+                
+                // Handle room selection change
+                roomSelect.addEventListener('change', function() {
+                    var selectedRoom = this.value;
+                    if (selectedRoom) {
+                        // Task 4: Open new window with selected room
+                        var countryPrefix = localStorage.getItem("urlPrefix") || "SG";
+                        var roomViewUrl = "/B/" + countryPrefix + "/showroomView.html?room=" + encodeURIComponent(selectedRoom);
+                        window.open(roomViewUrl, '_blank');
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
+
