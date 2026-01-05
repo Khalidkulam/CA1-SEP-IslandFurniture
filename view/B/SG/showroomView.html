@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Showroom - 3D View</title>
     <meta charset="utf-8">
@@ -11,10 +12,12 @@
             overflow: hidden;
             font-family: Arial, sans-serif;
         }
+
         #container {
             width: 100vw;
             height: 100vh;
         }
+
         #info {
             position: absolute;
             top: 10px;
@@ -25,6 +28,7 @@
             border-radius: 5px;
             z-index: 100;
         }
+
         #loading {
             position: absolute;
             top: 50%;
@@ -34,8 +38,33 @@
             font-size: 24px;
             z-index: 100;
         }
+
+        .popup-btn {
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            pointer-events: auto;
+            font-size: 12px;
+        }
+
+        .popup-btn:hover {
+            background: #c0392b;
+        }
+
+        .wishlist-btn {
+            background: #3498db;
+        }
+
+        .wishlist-btn:hover {
+            background: #2980b9;
+        }
     </style>
 </head>
+
 <body>
     <div id="container"></div>
     <div id="info">
@@ -43,41 +72,58 @@
         <p>Use mouse to rotate, scroll to zoom</p>
     </div>
     <div id="loading">Loading 3D Room...</div>
-    <div id="furniturePopup" style="display: none; position: absolute; background: rgba(0, 0, 0, 0.9); color: white; padding: 15px; border-radius: 5px; pointer-events: none; z-index: 200; min-width: 200px;">
+    <div id="furniturePopup"
+        style="display: none; position: absolute; background: rgba(0, 0, 0, 0.9); color: white; padding: 15px; border-radius: 5px; pointer-events: auto; z-index: 200; min-width: 220px;">
+
         <h4 id="popupName" style="margin: 0 0 10px 0; font-size: 16px;"></h4>
         <p id="popupPrice" style="margin: 5px 0; font-size: 14px;"></p>
         <p id="popupDimensions" style="margin: 5px 0; font-size: 12px;"></p>
+
+        <!-- THIS IS THE NEW FULL DETAILS SECTION -->
+        <div id="fullDetails" style="display: none; margin-top: 10px;">
+            <p id="popupCategory"></p>
+            <p id="popupMaterial"></p>
+            <p id="popupDescription"></p>
+        </div>
+
+        <!-- NEW BUTTONS -->
+        <button id="viewDetailsBtn" class="popup-btn">View Full Details</button>
+        <button id="wishlistBtn" class="popup-btn wishlist-btn">Add to Wishlist</button>
     </div>
+
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
+        // Feature branch: showroom popup enhancement
+        var countryPrefix = localStorage.getItem("urlPrefix") || 'SG';
         // Get room parameter from URL
         var urlParams = new URLSearchParams(window.location.search);
         var selectedRoom = urlParams.get('room') || 'Living Room';
-        
+
         document.getElementById('roomName').textContent = selectedRoom + ' - 3D Showroom';
-        
+
         // Scene setup
         var scene = new THREE.Scene();
         scene.background = new THREE.Color(0xf0f0f0);
-        
+
         var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5, 10);
-        
+
         var renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         document.getElementById('container').appendChild(renderer.domElement);
-        
+
         // Lighting
         var ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
-        
+
         var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
         directionalLight.position.set(10, 10, 5);
         directionalLight.castShadow = true;
         scene.add(directionalLight);
-        
+
         // Room dimensions based on room type
         var roomDimensions = {
             'Living Room': { width: 8, height: 3, depth: 6 },
@@ -87,12 +133,12 @@
             'Bathroom': { width: 3, height: 3, depth: 3 },
             'Garden': { width: 10, height: 4, depth: 10 }
         };
-        
+
         var dimensions = roomDimensions[selectedRoom] || roomDimensions['Living Room'];
-        
+
         // Create room floor
         var floorGeometry = new THREE.PlaneGeometry(dimensions.width, dimensions.depth);
-        var floorMaterial = new THREE.MeshStandardMaterial({ 
+        var floorMaterial = new THREE.MeshStandardMaterial({
             color: selectedRoom === 'Garden' ? 0x90EE90 : 0xE8E8E8,
             roughness: 0.8
         });
@@ -101,13 +147,13 @@
         floor.position.y = 0;
         floor.receiveShadow = true;
         scene.add(floor);
-        
+
         // Create room walls
-        var wallMaterial = new THREE.MeshStandardMaterial({ 
+        var wallMaterial = new THREE.MeshStandardMaterial({
             color: 0xFFFFFF,
             roughness: 0.7
         });
-        
+
         // Back wall
         var backWall = new THREE.Mesh(
             new THREE.PlaneGeometry(dimensions.width, dimensions.height),
@@ -115,7 +161,7 @@
         );
         backWall.position.set(0, dimensions.height / 2, -dimensions.depth / 2);
         scene.add(backWall);
-        
+
         // Left wall
         var leftWall = new THREE.Mesh(
             new THREE.PlaneGeometry(dimensions.depth, dimensions.height),
@@ -124,7 +170,7 @@
         leftWall.rotation.y = Math.PI / 2;
         leftWall.position.set(-dimensions.width / 2, dimensions.height / 2, 0);
         scene.add(leftWall);
-        
+
         // Right wall
         var rightWall = new THREE.Mesh(
             new THREE.PlaneGeometry(dimensions.depth, dimensions.height),
@@ -133,7 +179,7 @@
         rightWall.rotation.y = -Math.PI / 2;
         rightWall.position.set(dimensions.width / 2, dimensions.height / 2, 0);
         scene.add(rightWall);
-        
+
         // Ceiling (for indoor rooms)
         if (selectedRoom !== 'Garden') {
             var ceiling = new THREE.Mesh(
@@ -144,10 +190,10 @@
             ceiling.position.y = dimensions.height;
             scene.add(ceiling);
         }
-        
+
         // Furniture array to store loaded furniture
         var furnitureObjects = [];
-        
+
         // Predefined furniture positions for each room type (fixed layout)
         var roomLayouts = {
             'Living Room': [
@@ -184,77 +230,77 @@
                 { category: 'Lightings', position: { x: 0, z: 0, y: 2 }, rotation: 0 }
             ]
         };
-        
+
         // Fetch furniture data
         var countryId = localStorage.getItem('countryId') || '';
         fetch('/api/getFurnitureByRoom?room=' + encodeURIComponent(selectedRoom) + '&countryId=' + countryId)
-            .then(function(response) {
+            .then(function (response) {
                 return response.json();
             })
-            .then(function(furnitureList) {
+            .then(function (furnitureList) {
                 document.getElementById('loading').style.display = 'none';
-                
+
                 if (!furnitureList || furnitureList.length === 0) {
                     console.log('No furniture found for this room');
                     return;
                 }
-                
+
                 // Get predefined layout for this room
                 var layout = roomLayouts[selectedRoom] || roomLayouts['Living Room'];
-                
+
                 // Group furniture by category
                 var furnitureByCategory = {};
-                furnitureList.forEach(function(furniture) {
+                furnitureList.forEach(function (furniture) {
                     if (!furnitureByCategory[furniture.category]) {
                         furnitureByCategory[furniture.category] = [];
                     }
                     furnitureByCategory[furniture.category].push(furniture);
                 });
-                
+
                 // Place furniture in predefined positions
-                layout.forEach(function(layoutItem) {
+                layout.forEach(function (layoutItem) {
                     var categoryFurniture = furnitureByCategory[layoutItem.category];
                     if (categoryFurniture && categoryFurniture.length > 0) {
                         // Use first item from this category
                         var furniture = categoryFurniture[0];
                         createFurnitureItem(
-                            furniture, 
-                            layoutItem.position, 
+                            furniture,
+                            layoutItem.position,
                             layoutItem.rotation,
                             dimensions
                         );
                     }
                 });
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error fetching furniture:', error);
                 document.getElementById('loading').textContent = 'Error loading furniture';
             });
-        
+
         // Create a furniture item in 3D with fixed position
         function createFurnitureItem(furniture, position, rotation, roomDim) {
             // Convert dimensions from cm to meters (assuming dimensions are in cm)
             var length = (furniture.length || 100) / 100;
             var width = (furniture.width || 100) / 100;
             var height = (furniture.height || 100) / 100;
-            
+
             // Ensure minimum size for visibility
             length = Math.max(0.3, length);
             width = Math.max(0.3, width);
             height = Math.max(0.3, height);
-            
+
             // Create furniture geometry
             var geometry = new THREE.BoxGeometry(length, height, width);
-            
+
             // Try to load furniture image, fallback to color
             var material;
             if (furniture.imageURL) {
                 var textureLoader = new THREE.TextureLoader();
-                var texture = textureLoader.load(furniture.imageURL, 
-                    function() { console.log('Texture loaded'); },
-                    function() { console.log('Texture error'); }
+                var texture = textureLoader.load(furniture.imageURL,
+                    function () { console.log('Texture loaded'); },
+                    function () { console.log('Texture error'); }
                 );
-                material = new THREE.MeshStandardMaterial({ 
+                material = new THREE.MeshStandardMaterial({
                     map: texture,
                     roughness: 0.7,
                     metalness: 0.1
@@ -271,15 +317,15 @@
                     'Study': 0x696969
                 };
                 var color = categoryColors[furniture.category] || 0x8B4513;
-                material = new THREE.MeshStandardMaterial({ 
+                material = new THREE.MeshStandardMaterial({
                     color: color,
                     roughness: 0.6,
                     metalness: 0.1
                 });
             }
-            
+
             var furnitureMesh = new THREE.Mesh(geometry, material);
-            
+
             // Use predefined position (y defaults to height/2 if not specified)
             var yPos = position.y !== undefined ? position.y : height / 2;
             furnitureMesh.position.set(position.x, yPos, position.z);
@@ -287,7 +333,7 @@
             furnitureMesh.castShadow = true;
             furnitureMesh.receiveShadow = true;
             furnitureMesh.userData = furniture; // Store furniture data for hover interactions
-            
+
             // Add hover interaction
             furnitureMesh.userData.isFurniture = true;
             furnitureMesh.userData.furnitureInfo = {
@@ -295,9 +341,13 @@
                 price: furniture.price || 'N/A',
                 length: furniture.length || 'N/A',
                 width: furniture.width || 'N/A',
-                height: furniture.height || 'N/A'
+                height: furniture.height || 'N/A',
+                category: furniture.category || 'Unknown',
+                material: furniture.material || 'Unknown',
+                description: furniture.description || 'No description available'
             };
-            
+
+
             // Add label with furniture name
             var canvas = document.createElement('canvas');
             canvas.width = 256;
@@ -313,98 +363,126 @@
                 context.font = '14px Arial';
                 context.fillText('$' + furniture.price, 128, 55);
             }
-            
+
             var texture = new THREE.CanvasTexture(canvas);
             var labelMaterial = new THREE.SpriteMaterial({ map: texture });
             var label = new THREE.Sprite(labelMaterial);
             label.position.set(position.x, height + 0.3, position.z);
             label.scale.set(1.5, 0.4, 1);
-            
+
             scene.add(furnitureMesh);
             scene.add(label);
             furnitureObjects.push(furnitureMesh);
         }
-        
+
         // Raycaster for hover detection
         var raycaster = new THREE.Raycaster();
         var mouse = new THREE.Vector2();
         var hoveredObject = null;
         var popup = document.getElementById('furniturePopup');
-        
+
         // Mouse move for hover detection
-        renderer.domElement.addEventListener('mousemove', function(e) {
+        renderer.domElement.addEventListener('mousemove', function (e) {
             if (isDragging) {
                 var deltaX = e.clientX - previousMousePosition.x;
                 var deltaY = e.clientY - previousMousePosition.y;
-                
+
                 var spherical = new THREE.Spherical();
                 spherical.setFromVector3(camera.position);
                 spherical.theta -= deltaX * 0.01;
                 spherical.phi += deltaY * 0.01;
                 spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
-                
+
                 camera.position.setFromSpherical(spherical);
                 camera.lookAt(0, 0, 0);
             } else {
                 // Hover detection
                 mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-                
+
                 raycaster.setFromCamera(mouse, camera);
                 var intersects = raycaster.intersectObjects(furnitureObjects);
-                
+
                 if (intersects.length > 0 && intersects[0].object.userData.isFurniture) {
-                    var furnitureInfo = intersects[0].object.userData.furnitureInfo;
-                    
-                    // Show popup
+
+                    const furnitureInfo = intersects[0].object.userData.furnitureInfo;
+
                     popup.style.display = 'block';
+
+                    // Reset full details each time user hovers a new object
+                    document.getElementById('fullDetails').style.display = 'none';
+                    document.getElementById('viewDetailsBtn').textContent = 'View Full Details';
+
+                    // Set popup values
                     document.getElementById('popupName').textContent = furnitureInfo.name;
                     document.getElementById('popupPrice').textContent = 'Price: $' + furnitureInfo.price;
-                    document.getElementById('popupDimensions').textContent = 
+                    document.getElementById('popupDimensions').textContent =
                         'Dimensions: L:' + furnitureInfo.length + 'cm × W:' + furnitureInfo.width + 'cm × H:' + furnitureInfo.height + 'cm';
-                    
-                    // Position popup near mouse
+                    document.getElementById('popupCategory').textContent = 'Category: ' + furnitureInfo.category;
+                    document.getElementById('popupMaterial').textContent = 'Material: ' + furnitureInfo.material;
+                    document.getElementById('popupDescription').textContent = 'Description: ' + furnitureInfo.description;
+
+                    // Toggle Details Button
+                    document.getElementById('viewDetailsBtn').onclick = function () {
+                        const fullDetails = document.getElementById('fullDetails');
+
+                        if (fullDetails.style.display === 'none') {
+                            fullDetails.style.display = 'block';
+                            this.textContent = 'Hide Details';
+                        } else {
+                            fullDetails.style.display = 'none';
+                            this.textContent = 'View Full Details';
+                        }
+                    };
+
+                    // Wishlist Button
+                    document.getElementById('wishlistBtn').onclick = function () {
+                        alert(furnitureInfo.name + ' has been added to your wishlist!');
+                    };
+
+                    // Popup position
                     popup.style.left = (e.clientX + 10) + 'px';
                     popup.style.top = (e.clientY + 10) + 'px';
-                    
+
                     hoveredObject = intersects[0].object;
+
                 } else {
-                    // Hide popup
                     popup.style.display = 'none';
                     hoveredObject = null;
                 }
+
             }
             previousMousePosition = { x: e.clientX, y: e.clientY };
         });
-        
+
         // Camera controls (mouse)
         var isDragging = false;
         var previousMousePosition = { x: 0, y: 0 };
-        
-        renderer.domElement.addEventListener('mousedown', function(e) {
+
+        renderer.domElement.addEventListener('mousedown', function (e) {
             isDragging = true;
         });
-        
-        
-        renderer.domElement.addEventListener('mouseup', function() {
+
+
+        renderer.domElement.addEventListener('mouseup', function () {
             isDragging = false;
         });
-        
-        renderer.domElement.addEventListener('wheel', function(e) {
+
+        renderer.domElement.addEventListener('wheel', function (e) {
             e.preventDefault();
             var distance = camera.position.length();
             distance += e.deltaY * 0.01;
             distance = Math.max(3, Math.min(20, distance));
             camera.position.normalize().multiplyScalar(distance);
         });
-        
+
         // Handle window resize
-        window.addEventListener('resize', function() {
+        window.addEventListener('resize', function () {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-        
+
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
@@ -413,5 +491,5 @@
         animate();
     </script>
 </body>
-</html>
 
+</html>
