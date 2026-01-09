@@ -1,0 +1,468 @@
+<script src="../checkCountry.js"></script>
+<html>
+    <script src="../../header.js"></script>
+    <style>
+        /* Carousel Styles */
+        .carousel-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto 50px;
+            overflow: hidden;
+        }
+        
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        
+        .carousel-slide {
+            min-width: 100%;
+            height: 400px;
+        }
+        
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .carousel-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 10;
+            transition: background-color 0.3s;
+        }
+        
+        .carousel-button:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        
+        .carousel-button.prev {
+            left: 10px;
+        }
+        
+        .carousel-button.next {
+            right: 10px;
+        }
+        
+        .carousel-indicators {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .carousel-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .carousel-indicator.active {
+            background-color: #c0392b;
+        }
+        
+        /* Placeholder Card Styles */
+        .placeholder-card {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        .placeholder-card:hover {
+            border-color: #c0392b;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .placeholder-image {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 220px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .placeholder-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .placeholder-field {
+            padding: 8px 0;
+        }
+        
+        .placeholder-field label {
+            font-weight: bold;
+            color: #495057;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+        
+        .placeholder-field-value {
+            color: #6c757d;
+            font-size: 14px;
+            font-style: italic;
+        }
+        
+        .placeholder-price-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .placeholder-original-price {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .placeholder-discount-price {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .placeholder-discount-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+    <body>
+        <script>
+            var countryPrefix = localStorage.getItem('urlPrefix');
+            var countryId = localStorage.getItem('countryId');
+            
+            let featuredPromotions = [];
+            let currentSlide = 0;
+            
+            // Load featured promotions when page loads
+            window.addEventListener('load', function() {
+                // Hard-coded image URLs for CA1 Sprint 2. 
+                // Main Challenge: Images were hard-coded because the database path for
+                // promotions images is not accurate to the actual image locations on local computer. 
+                
+                // Additional Challenge: Promotions also no longer active as it only existed in 2014, 
+                // making it even harder to fetch, unless sql query (curdate()) filter is removed in the promotionModel.js. 
+
+                // Using actual images from view/img/promotions/
+                featuredPromotions = [
+                    { 
+                        imageURL: '/img/promotions/F_BM_212014-11-24.jpg',
+                        description: 'BRUNNES Nov Promotion - 10% OFF',
+                        sku: 'F_BM_21'  // BRIMNES bed SKU
+                    },
+                    { 
+                        imageURL: '/img/promotions/F_SC_402014-12-06.jpg',
+                        description: 'STRANDMON Nov Promo - 30% OFF',
+                        sku: 'F_BM_21'  // (both promotions link to same product) - this product is just an example
+                    }
+                ];
+                displayCarousel();
+                
+                // Backend API call (disabled for now - will be enabled in future sprints)
+                // Once database has active promotions with correct dates, uncomment this:
+                // loadFeaturedPromotions();
+            });
+            
+            // Load featured promotions from backend
+            function loadFeaturedPromotions() {
+                fetch('/api/getFeaturedPromotions?countryId=' + countryId)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Featured promotions loaded:', data);
+                        featuredPromotions = data;
+                        displayCarousel();
+                    })
+                    .catch(error => {
+                        console.log('Error loading featured promotions:', error);
+                        // Display error message
+                        document.getElementById('carouselContainer').innerHTML = 
+                            '<div class="alert alert-warning text-center">No featured promotions available at the moment.</div>';
+                    });
+            }
+            
+            // Display carousel with featured promotions
+            function displayCarousel() {
+                if (!featuredPromotions || featuredPromotions.length === 0) {
+                    document.getElementById('carouselContainer').innerHTML = 
+                        '<div class="alert alert-info text-center">No featured promotions available.</div>';
+                    return;
+                }
+                
+                // Build carousel HTML
+                let slidesHtml = '';
+                let indicatorsHtml = '';
+                
+                // Both featured promotions link to BRIMNES bed product (SKU: F_BM_21)
+                const productSku = 'F_BM_21';
+                
+                featuredPromotions.forEach((promo, index) => {
+                    slidesHtml += `
+                        <div class="carousel-slide" onclick="goToProductDetails('${productSku}')" style="cursor: pointer;">
+                            <img src="${promo.imageURL}" alt="${promo.description || 'Featured Promotion'}">
+                        </div>
+                    `;
+                    indicatorsHtml += `
+                        <span class="carousel-indicator ${index === 0 ? 'active' : ''}" onclick="goToSlide(${index})"></span>
+                    `;
+                });
+                
+                const carouselHtml = `
+                    <div class="carousel-track" id="carouselTrack">
+                        ${slidesHtml}
+                    </div>
+                    ${featuredPromotions.length > 1 ? `
+                        <button class="carousel-button prev" onclick="prevSlide(); event.stopPropagation();">‹</button>
+                        <button class="carousel-button next" onclick="nextSlide(); event.stopPropagation();">›</button>
+                        <div class="carousel-indicators">
+                            ${indicatorsHtml}
+                        </div>
+                    ` : ''}
+                `;
+                
+                document.getElementById('carouselContainer').innerHTML = carouselHtml;
+            }
+            
+            // Navigate to furniture product details page
+            function goToProductDetails(sku) {
+                window.location.href = '/B/' + countryPrefix + '/furnitureProductDetails.html?sku=' + sku;
+            }
+            
+            // Carousel navigation functions
+            function nextSlide() {
+                if (currentSlide < featuredPromotions.length - 1) {
+                    currentSlide++;
+                } else {
+                    currentSlide = 0;
+                }
+                updateCarousel();
+            }
+            
+            function prevSlide() {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                } else {
+                    currentSlide = featuredPromotions.length - 1;
+                }
+                updateCarousel();
+            }
+            
+            function goToSlide(index) {
+                currentSlide = index;
+                updateCarousel();
+            }
+            
+            function updateCarousel() {
+                const track = document.getElementById('carouselTrack');
+                const indicators = document.querySelectorAll('.carousel-indicator');
+                
+                if (track) {
+                    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+                }
+                
+                // Update indicators
+                indicators.forEach((indicator, index) => {
+                    if (index === currentSlide) {
+                        indicator.classList.add('active');
+                    } else {
+                        indicator.classList.remove('active');
+                    }
+                });
+            }
+        </script>
+        
+        <div class="body">
+            <script src="menu2.js"></script>
+            <div role="main" class="main">
+                <!-- Page Header -->
+                <section class="page-top">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h2>Promotions</h2>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <div class="container">
+                    <hr class="tall">
+                    
+                    <!-- Featured Promotions Carousel (No Heading) -->
+                    <div class="carousel-container" id="carouselContainer">
+                        <!-- Carousel will be loaded here -->
+                        <div class="text-center">
+                            <p class="text-muted">Loading featured promotions...</p>
+                        </div>
+                    </div>
+                    
+                    <hr class="tall">
+                    
+                    <!-- All Promotions Section -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3 class="push-top" style="color: #c0392b; font-weight: bold;">ALL PROMOTIONS</h3>
+                            <hr>
+                        </div>
+                    </div>
+                    
+                    <!-- Placeholder Grid (3 columns) -->
+                    <!-- Placeholder for all promotions because the actual data is not found in the database -->
+                    <div class="row">
+                        <!-- Placeholder Card 1 -->
+                        <div class="col-md-4">
+                            <div class="placeholder-card">
+                                <div class="placeholder-image">
+                                    Promotional Product Image
+                                </div>
+                                <div class="placeholder-content">
+                                    <div class="placeholder-field">
+                                        <label>Product Name:</label>
+                                        <div class="placeholder-field-value">xxx</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Description:</label>
+                                        <div class="placeholder-field-value">xxx</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Category:</label>
+                                        <div class="placeholder-field-value">xxx</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Price:</label>
+                                        <div class="placeholder-price-section">
+                                            <span class="placeholder-original-price">$xxx.xx</span>
+                                            <span class="placeholder-discount-price">$xxx.xx</span>
+                                            <span class="placeholder-discount-badge">x% OFF</span>
+                                        </div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Discount Rate:</label>
+                                        <div class="placeholder-field-value">x%</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Promotion Period:</label>
+                                        <div class="placeholder-field-value">xxx - xxx</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Placeholder Card 2 -->
+                        <div class="col-md-4">
+                            <div class="placeholder-card">
+                                <div class="placeholder-image">
+                                    Promotional Product Image
+                                </div>
+                                <div class="placeholder-content">
+                                    <div class="placeholder-field">
+                                        <label>Product Name:</label>
+                                        <div class="placeholder-field-value">xxx</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Description:</label>
+                                        <div class="placeholder-field-value">xxx</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Category:</label>
+                                        <div class="placeholder-field-value">xxx</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Price:</label>
+                                        <div class="placeholder-price-section">
+                                            <span class="placeholder-original-price">$xxx.xx</span>
+                                            <span class="placeholder-discount-price">$xxx.xx</span>
+                                            <span class="placeholder-discount-badge">x% OFF</span>
+                                        </div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Discount Rate:</label>
+                                        <div class="placeholder-field-value">x%</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Promotion Period:</label>
+                                        <div class="placeholder-field-value">xxx - xxx</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Placeholder Card 3 -->
+                        <div class="col-md-4">
+                            <div class="placeholder-card">
+                                <div class="placeholder-image">
+                                    Promotional Product Image
+                                </div>
+                                <div class="placeholder-content">
+                                    <div class="placeholder-field">
+                                        <label>Product Name:</label>
+                                        <div class="placeholder-field-value">xxx</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Description:</label>
+                                        <div class="placeholder-field-value">xxx</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Category:</label>
+                                        <div class="placeholder-field-value">xxx</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Price:</label>
+                                        <div class="placeholder-price-section">
+                                            <span class="placeholder-original-price">$xxx.xx</span>
+                                            <span class="placeholder-discount-price">$xxx.xx</span>
+                                            <span class="placeholder-discount-badge">x% OFF</span>
+                                        </div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Discount Rate:</label>
+                                        <div class="placeholder-field-value">x%</div>
+                                    </div>
+                                    <div class="placeholder-field">
+                                        <label>Promotion Period:</label>
+                                        <div class="placeholder-field-value">xxx - xxx</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="tall">
+                </div>
+            </div>
+            <script src="../footer.js"></script>
+        </div>
+    </body>
+</html>
