@@ -106,13 +106,16 @@ document.write('\
                         </ul>\
                     </li>\
                     <li class="dropdown">\
-    <a class="dropdown-toggle" href="#">\
-        Retail<i class="icon icon-angle-down"></i>\
-    </a>\
-    <ul class="dropdown-menu">\
-        <li><a id="retailProductLink"><i class="icon icon-coffee"></i> Retail Products</a></li>\
-    </ul>\
-</li>\
+                        <a class="dropdown-toggle" href="#">\
+                            Retail<i class="icon icon-angle-down"></i>\
+                        </a>\
+                        <ul class="dropdown-menu">\
+                            <li><a id="retailProductLink"><i class="icon icon-coffee"></i> Retail Products</a></li>\
+                        </ul>\
+                    </li>\
+                    <li>\
+                        <a href="/B/' + countryPrefix + '/promotions.html">Promotions</a>\
+                    </li>\
                 </ul>\
             </nav>\
         </div>\
